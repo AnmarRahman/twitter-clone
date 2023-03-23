@@ -33,10 +33,10 @@ function Input() {
     setLoading(true);
 
     const docRef = await addDoc(collection(db, "posts"), {
-      // id: session.user.uid,
-      // username: session.user.name,
-      // userImg: session.user.image,
-      // tag: session.user.tag,
+      id: session.user.uid,
+      username: session.user.name,
+      userImg: session.user.image,
+      tag: session.user.tag,
       text: input,
       timestamp: serverTimestamp(),
     });
@@ -83,7 +83,7 @@ function Input() {
       } ${loading && "opacity-60"}`}
     >
       <img
-        src="https://w7.pngwing.com/pngs/398/821/png-transparent-firebase-google-google-i-o-icon-thumbnail.png"
+        src={session.user.image}
         alt="NaN"
         className="h-11 w-11 rounded-full cursor-pointer"
         onClick={signOut}
