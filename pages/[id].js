@@ -55,7 +55,7 @@ function PostPage({ trendingResults, followResults, providers }) {
         <title>
           {post?.username} on Twitter: "{post?.text}"
         </title>
-        <link rel="icon" href="/twitter.png" />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="bg-black min-h-screen flex max-w-[1500px] mx-auto">
         <Sidebar />
@@ -101,7 +101,7 @@ export async function getServerSideProps(context) {
     "https://api.npoint.io/da42240e76d43c379829"
   ).then((res) => res.json());
   const followResults = await fetch(
-    "https://api.npoint.io/dcd3845a8b945ba02842"
+    "https://api.npoint.io/da42240e76d43c379829"
   ).then((res) => res.json());
   const providers = await getProviders();
   const session = await getSession(context);
