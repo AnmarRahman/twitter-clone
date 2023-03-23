@@ -26,6 +26,7 @@ import { useEffect, useState } from "react";
 import Moment from "react-moment";
 import { useRecoilState } from "recoil";
 import { modalState, postIdState } from "../atoms/modalAtom";
+import { db } from "../firebase";
 
 function Post({ id, post, postPage }) {
   const { data: session } = useSession();
@@ -35,6 +36,44 @@ function Post({ id, post, postPage }) {
   const [likes, setLikes] = useState([]);
   const [liked, setLiked] = useState(false);
   const router = useRouter();
+
+  useEffect(
+    () =>
+      onSnapshot(
+        query(
+          collection(db, "posts", id, "comments"),
+          orderBy("timestamp", "desc")
+        ),
+        (snapshot) => setComments(snapshot.docs)
+      ),
+    [db, id]
+  );
+
+  useEffect(
+    () =>
+      onSnapshot(collection(db, "posts", id, "likes"), (snapshot) =>
+        setLikes(snapshot.docs)
+      ),
+    [db, id]
+  );
+
+  useEffect(
+    () =>
+      setLiked(
+        likes.findIndex((like) => like.id === session?.user?.uid) !== -1
+      ),
+    [likes]
+  );
+
+  const likePost = async () => {
+    if (liked) {
+      await deleteDoc(doc(db, "posts", id, "likes", session.user.uid));
+    } else {
+      await setDoc(doc(db, "posts", id, "likes", session.user.uid), {
+        username: session.user.name,
+      });
+    }
+  };
 
   return (
     <div
@@ -71,7 +110,7 @@ function Post({ id, post, postPage }) {
               >
                 @{post?.tag}
               </span>
-            </div>
+            </div>{" "}
             ·{" "}
             <span className="hover:underline text-sm sm:text-[15px]">
               <Moment fromNow>{post?.timestamp?.toDate()}</Moment>
@@ -99,6 +138,7 @@ function Post({ id, post, postPage }) {
             postPage && "mx-auto"
           }`}
         >
+          {/* Comment Icon */}
           <div
             className="flex items-center space-x-1 group"
             onClick={(e) => {
@@ -117,8 +157,16 @@ function Post({ id, post, postPage }) {
             )}
           </div>
 
+          {/* Delete Icon or Switch Icon*/}
           {session.user.uid === post?.id ? (
-            <div className="flex items-center space-x-1 group">
+            <div
+              className="flex items-center space-x-1 group"
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteDoc(doc(db, "posts", id));
+                router.push("/");
+              }}
+            >
               <div className="icon group-hover:bg-red-600/10">
                 <TrashIcon className="h-5 group-hover:text-red-600" />
               </div>
@@ -131,6 +179,7 @@ function Post({ id, post, postPage }) {
             </div>
           )}
 
+          {/* Like Icon  */}
           <div
             className="flex items-center space-x-1 group"
             onClick={(e) => {
@@ -156,9 +205,12 @@ function Post({ id, post, postPage }) {
             )}
           </div>
 
+          {/* Share Icon */}
           <div className="icon group">
             <ShareIcon className="h-5 group-hover:text-[#1d9bf0]" />
           </div>
+
+          {/* Chart Icon */}
           <div className="icon group">
             <ChartBarIcon className="h-5 group-hover:text-[#1d9bf0]" />
           </div>
