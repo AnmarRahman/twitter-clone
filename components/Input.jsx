@@ -6,47 +6,57 @@ import {
   XIcon,
 } from "@heroicons/react/outline";
 import { useRef, useState } from "react";
+import { db, storage } from "../firebase";
+import {
+  addDoc,
+  collection,
+  doc,
+  serverTimestamp,
+  updateDoc,
+} from "@firebase/firestore";
+import { getDownloadURL, ref, uploadString } from "@firebase/storage";
 import { signOut, useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 
 function Input() {
-  // const { data: session } = useSession();
+  const { data: session } = useSession();
   const [input, setInput] = useState("");
-  // const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const filePickerRef = useRef(null);
   const [showEmojis, setShowEmojis] = useState(false);
 
-  // const sendPost = async () => {
-  //   if (loading) return;
-  //   setLoading(true);
+  const sendPost = async () => {
+    if (loading) return;
+    setLoading(true);
 
-  //   const docRef = await addDoc(collection(db, "posts"), {
-  //     id: session.user.uid,
-  //     username: session.user.name,
-  //     userImg: session.user.image,
-  //     tag: session.user.tag,
-  //     text: input,
-  //     timestamp: serverTimestamp(),
-  //   });
+    const docRef = await addDoc(collection(db, "posts"), {
+      // id: session.user.uid,
+      // username: session.user.name,
+      // userImg: session.user.image,
+      // tag: session.user.tag,
+      text: input,
+      timestamp: serverTimestamp(),
+    });
 
-  //   const imageRef = ref(storage, `posts/${docRef.id}/image`);
+    const imageRef = ref(storage, `posts/${docRef.id}/image`);
 
-  //   if (selectedFile) {
-  //     await uploadString(imageRef, selectedFile, "data_url").then(async () => {
-  //       const downloadURL = await getDownloadURL(imageRef);
-  //       await updateDoc(doc(db, "posts", docRef.id), {
-  //         image: downloadURL,
-  //       });
-  //     });
-  //   }
+    if (selectedFile) {
+      await uploadString(imageRef, selectedFile, "data_url").then(async () => {
+        const downloadURL = await getDownloadURL(imageRef);
+        await updateDoc(doc(db, "posts", docRef.id), {
+          image: downloadURL,
+        });
+      });
+    }
 
-  //   setLoading(false);
-  //   setInput("");
-  //   setSelectedFile(null);
-  //   setShowEmojis(false);
-  // };
+    setLoading(false);
+    setInput("");
+    setSelectedFile(null);
+    setShowEmojis(false);
+  };
 
   const addImageToPost = (e) => {
     const reader = new FileReader();
@@ -70,7 +80,7 @@ function Input() {
   return (
     <div
       className={`border-b border-gray-700 p-3 flex space-x-3 overflow-y-scroll scrollbar-hide 
-      }`}
+      } ${loading && "opacity-60"}`}
     >
       <img
         src="https://w7.pngwing.com/pngs/398/821/png-transparent-firebase-google-google-i-o-icon-thumbnail.png"
@@ -104,60 +114,63 @@ function Input() {
             </div>
           )}
         </div>
-        {/* {!loading && ( */}
-        <div className="flex flex-col pt-2.5">
-          <div className="flex items-center justify-between ">
-            <div className="flex items-center">
-              <div
-                className="icon"
-                onClick={() => filePickerRef.current.click()}
+        {!loading && (
+          <div className="flex flex-col pt-2.5">
+            <div className="flex items-center justify-between ">
+              <div className="flex items-center">
+                <div
+                  className="icon"
+                  onClick={() => filePickerRef.current.click()}
+                >
+                  <PhotographIcon className="text-[#1d9bf0] h-[22px]" />
+                  <input
+                    type="file"
+                    onChange={addImageToPost}
+                    ref={filePickerRef}
+                    hidden
+                  />
+                </div>
+
+                <div className="icon rotate-90">
+                  <ChartBarIcon className="text-[#1d9bf0] h-[22px]" />
+                </div>
+
+                <div
+                  className="icon"
+                  onClick={() => setShowEmojis(!showEmojis)}
+                >
+                  <EmojiHappyIcon className="text-[#1d9bf0] h-[22px]" />
+                </div>
+
+                <div className="icon">
+                  <CalendarIcon className="text-[#1d9bf0] h-[22px]" />
+                </div>
+              </div>
+
+              <button
+                className="bg-[#1d9bf0] text-white rounded-full px-4 py-1.5 font-bold shadow-md hover:bg-[#1a8cd8] disabled:hover:bg-[#1d9bf0] disabled:opacity-50 disabled:cursor-default"
+                disabled={!input.trim() && !selectedFile}
+                onClick={sendPost}
               >
-                <PhotographIcon className="text-[#1d9bf0] h-[22px]" />
-                <input
-                  type="file"
-                  onChange={addImageToPost}
-                  ref={filePickerRef}
-                  hidden
-                />
-              </div>
-
-              <div className="icon rotate-90">
-                <ChartBarIcon className="text-[#1d9bf0] h-[22px]" />
-              </div>
-
-              <div className="icon" onClick={() => setShowEmojis(!showEmojis)}>
-                <EmojiHappyIcon className="text-[#1d9bf0] h-[22px]" />
-              </div>
-
-              <div className="icon">
-                <CalendarIcon className="text-[#1d9bf0] h-[22px]" />
-              </div>
+                Tweet
+              </button>
             </div>
 
-            <button
-              className="bg-[#1d9bf0] text-white rounded-full px-4 py-1.5 font-bold shadow-md hover:bg-[#1a8cd8] disabled:hover:bg-[#1d9bf0] disabled:opacity-50 disabled:cursor-default"
-              disabled={!input.trim() && !selectedFile}
-              // onClick={sendPost}
-            >
-              Tweet
-            </button>
+            <div>
+              {showEmojis && (
+                <div className="absolute">
+                  <Picker
+                    data={data}
+                    onEmojiSelect={addEmoji}
+                    theme="dark"
+                    previewPosition="none"
+                    perLine={6}
+                  />
+                </div>
+              )}
+            </div>
           </div>
-
-          <div>
-            {showEmojis && (
-              <div className="absolute">
-                <Picker
-                  data={data}
-                  onEmojiSelect={addEmoji}
-                  theme="dark"
-                  previewPosition="none"
-                  perLine={6}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-        {/* )} */}
+        )}
       </div>
     </div>
   );
