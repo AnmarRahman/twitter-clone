@@ -6,20 +6,19 @@ import { getProviders, getSession, useSession } from "next-auth/react";
 import { useRecoilState } from "recoil";
 import { modalState } from "../atoms/modalAtom";
 import Modal from "../components/Modal";
-
-const inter = Inter({ subsets: ["latin"] });
+import Login from "../components/Login";
 
 export default function Home({ trendingResults, followResults, providers }) {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useRecoilState(modalState);
 
-  // if (!session) return <Login providers={providers} />;
+  if (!session) return <Login providers={providers} />;
 
   return (
     <div>
       <Head>
         <title>Home / Twitter</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/twitter.png" />
       </Head>
 
       <main className="bg-black min-h-screen flex max-w-[1500px] mx-auto">
@@ -38,12 +37,12 @@ export default function Home({ trendingResults, followResults, providers }) {
 }
 
 export async function getServerSideProps(context) {
-  const trendingResults = await fetch("https://jsonkeeper.com/b/NKEV").then(
-    (res) => res.json()
-  );
-  const followResults = await fetch("https://jsonkeeper.com/b/WWMJ").then(
-    (res) => res.json()
-  );
+  const trendingResults = await fetch(
+    "https://api.npoint.io/da42240e76d43c379829"
+  ).then((res) => res.json());
+  const followResults = await fetch(
+    "https://api.npoint.io/dcd3845a8b945ba02842"
+  ).then((res) => res.json());
   const providers = await getProviders();
   const session = await getSession(context);
 
