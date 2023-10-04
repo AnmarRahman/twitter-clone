@@ -18,6 +18,7 @@ import { db } from "../firebase";
 import { ArrowLeftIcon } from "@heroicons/react/solid";
 import Comment from "../components/Comment";
 import Head from "next/head";
+import Login from "../components/Login";
 
 function PostPage({ trendingResults, followResults, providers }) {
   const { data: session } = useSession();
@@ -55,7 +56,7 @@ function PostPage({ trendingResults, followResults, providers }) {
         <title>
           {post?.username} on Twitter: "{post?.text}"
         </title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/twitter.ico" />
       </Head>
       <main className="bg-black min-h-screen flex max-w-[1500px] mx-auto">
         <Sidebar />

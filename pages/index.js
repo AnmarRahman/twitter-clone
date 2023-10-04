@@ -2,7 +2,7 @@ import Head from "next/head";
 import Feed from "../components/Feed";
 import Sidebar from "../components/Sidebar";
 import Widgets from "../components/Widgets";
-import { useSession } from "next-auth/react";
+import { getProviders, useSession } from "next-auth/react";
 import Login from "../components/Login";
 import Modal from "../components/Modal";
 import { modalState } from "../atoms/modalAtom";
@@ -18,7 +18,7 @@ export default function Home({ trendingResults, providers }) {
     <div className="">
       <Head>
         <title>Home / Twitter</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/twitter.ico" />
       </Head>
 
       <main className="bg-black min-h-screen flex max-w-[1500px] mx-auto">
@@ -38,10 +38,12 @@ export async function getServerSideProps(context) {
   const trendingResults = await fetch(
     `https://newsapi.org/v2/top-headlines?country=us&apiKey=${apiKey}`
   ).then((res) => res.json());
+  const providers = await getProviders();
 
   return {
     props: {
       trendingResults,
+      providers,
     },
   };
 }
