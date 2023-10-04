@@ -20,13 +20,15 @@ import Comment from "../components/Comment";
 import Head from "next/head";
 import Login from "../components/Login";
 
-function PostPage({ trendingResults, followResults, providers }) {
+function PostPage({ trendingResults, providers }) {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useRecoilState(modalState);
   const [post, setPost] = useState();
   const [comments, setComments] = useState([]);
   const router = useRouter();
   const { id } = router.query;
+
+  console.log("trending results", trendingResults);
 
   useEffect(
     () =>
@@ -84,10 +86,7 @@ function PostPage({ trendingResults, followResults, providers }) {
             </div>
           )}
         </div>
-        <Widgets
-          trendingResults={trendingResults}
-          followResults={followResults}
-        />
+        <Widgets trendingResults={trendingResults} />
 
         {isOpen && <Modal />}
       </main>
@@ -98,21 +97,17 @@ function PostPage({ trendingResults, followResults, providers }) {
 export default PostPage;
 
 export async function getServerSideProps(context) {
+  const apiKey = "f98119da1eb44ff8be61e1d382511b48";
+
   const trendingResults = await fetch(
-    "https://api.npoint.io/da42240e76d43c379829"
-  ).then((res) => res.json());
-  const followResults = await fetch(
-    "https://api.npoint.io/da42240e76d43c379829"
+    `https://newsapi.org/v2/top-headlines?country=us&apiKey=${apiKey}`
   ).then((res) => res.json());
   const providers = await getProviders();
-  const session = await getSession(context);
 
   return {
     props: {
       trendingResults,
-      followResults,
       providers,
-      session,
     },
   };
 }
