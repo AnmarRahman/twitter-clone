@@ -2,13 +2,13 @@ import Head from "next/head";
 import Feed from "../components/Feed";
 import Sidebar from "../components/Sidebar";
 import Widgets from "../components/Widgets";
-import { getProviders, getSession, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Login from "../components/Login";
 import Modal from "../components/Modal";
 import { modalState } from "../atoms/modalAtom";
 import { useRecoilState } from "recoil";
 
-export default function Home({ trendingResults, followResults, providers }) {
+export default function Home({ trendingResults, providers }) {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useRecoilState(modalState);
 
@@ -24,10 +24,7 @@ export default function Home({ trendingResults, followResults, providers }) {
       <main className="bg-black min-h-screen flex max-w-[1500px] mx-auto">
         <Sidebar />
         <Feed />
-        <Widgets
-          trendingResults={trendingResults}
-          followResults={followResults}
-        />
+        <Widgets trendingResults={trendingResults.articles} />
 
         {isOpen && <Modal />}
       </main>
@@ -36,21 +33,15 @@ export default function Home({ trendingResults, followResults, providers }) {
 }
 
 export async function getServerSideProps(context) {
+  const apiKey = "f98119da1eb44ff8be61e1d382511b48";
+
   const trendingResults = await fetch(
-    "https://api.npoint.io/da42240e76d43c379829"
+    `https://newsapi.org/v2/top-headlines?country=us&apiKey=${apiKey}`
   ).then((res) => res.json());
-  const followResults = await fetch(
-    "https://api.npoint.io/dcd3845a8b945ba02842"
-  ).then((res) => res.json());
-  const providers = await getProviders();
-  const session = await getSession(context);
 
   return {
     props: {
       trendingResults,
-      followResults,
-      providers,
-      session,
     },
   };
 }
